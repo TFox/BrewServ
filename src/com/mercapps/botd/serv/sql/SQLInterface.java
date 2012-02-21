@@ -121,14 +121,14 @@ public class SQLInterface {
 
             // Build query, check for duplicates (needs work) execute, build user object and set.
             getBrewOfTheDayStmt = con.prepareStatement(getBrewOfTheDayQuery);
+
             getBrewOfTheDayStmt.setLong(1, GetDate());
 
             rs = getBrewOfTheDayStmt.executeQuery();
             int rank = 1;
             while (rs.next()) {
-                JSONObject jObj = new JSONObject();
                 try {
-                    jObj.put("" + rank, rs.getString(shopsReferenceField));
+                    brewRankings.put("" + rank, rs.getString(shopsReferenceField));
                 } catch (JSONException jex) {
                     System.out.println(jex);
                 }
