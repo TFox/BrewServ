@@ -2,59 +2,58 @@ package com.mercapps.botd.serv.sql;
 
 import com.mysql.jdbc.NonRegisteringDriver;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Copyright © 2012 mercapps.com
  */
 public class SQLConnector {
 
-    static String dbms = "mysql";
-
-    static String userName;
-    static String password;
+    private static String userName;
+    private static String password;
     private static String dbName;
 
-    static String urlString;
+    private static String serverName;
 
-    static String serverName;
-
-    static int portNumber = 3306;
-
-    public static String getDbName() {
+    public String getDbName() {
         return dbName;
     }
 
-    public static Connection getConnection() throws SQLException {
+    public Connection getConnection() throws SQLException {
+        String dbms = "mysql";
+        int portNumber = 3306;
+        String currentUrlString;
+
         SetCreds();
         Connection conn;
         Properties connectionProps = new Properties();
         connectionProps.put("user", userName);
         connectionProps.put("password", password);
 
-        String currentUrlString;
-
         currentUrlString = "jdbc:" + dbms + "://" + serverName +
                 ":" + portNumber + "/";
         NonRegisteringDriver non = new NonRegisteringDriver();
         conn = non.connect(currentUrlString, connectionProps);
 
-        urlString = currentUrlString + dbName;
         conn.setCatalog(dbName);
 
         System.out.println("Connected to database");
         return conn;
     }
 
-    static void SetCreds() {
+    private void SetCreds() {
         Properties creds = new Properties();
 
         try {
-            creds.load(new FileInputStream("credentials.properties"));
+
+            InputStream inputStream = this.getClass().getClassLoader()
+                    .getResourceAsStream("conf/credentials.properties");
+            creds.load(inputStream);
 
             userName = creds.getProperty("username");
             password = creds.getProperty("password");

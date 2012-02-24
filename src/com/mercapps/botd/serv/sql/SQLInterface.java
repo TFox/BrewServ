@@ -6,21 +6,21 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.*;
 
 /**
  * Copyright © 2012 mercapps.com
  */
 public class SQLInterface {
 
-    Connection con;
+    private Connection con;
 
     public SQLInterface(Connection con) {
         this.con = con;
     }
 
     // Tables
-    private final String dbName = SQLConnector.getDbName();
+    private final String dbName = new SQLConnector().getDbName();
     private final String shopsTable = dbName + ".shops";
     private final String votesTable = dbName + ".votes";
 
@@ -73,7 +73,7 @@ public class SQLInterface {
         ResultSet rs = null;
         try {
             if (con == null || con.isClosed())
-                con = SQLConnector.getConnection();
+                con = new SQLConnector().getConnection();
 
             // Build query, check for duplicates (needs work) execute, build user object and set.
             getObjectStmt = con.prepareStatement(getObjectQuery);
@@ -117,7 +117,7 @@ public class SQLInterface {
         ResultSet rs = null;
         try {
             if (con == null || con.isClosed())
-                con = SQLConnector.getConnection();
+                con = new SQLConnector().getConnection();
 
             // Build query, check for duplicates (needs work) execute, build user object and set.
             getBrewOfTheDayStmt = con.prepareStatement(getBrewOfTheDayQuery);
@@ -163,11 +163,11 @@ public class SQLInterface {
                 + votesShopVoteField + ","
                 + votesPointsField
                 + ") VALUES(?,?,?,?)";
-        //+ qON + qDUPLICATE + qKEY + qUPDATE + votesUsernameField + qEQUALS + votesUsernameField;
+        //+ qON + qDUPLICATE + qKEY + qUPDATE + votesShopVoteField + qEQUALS_VALUE;
 
         try {
             if (con == null || con.isClosed())
-                con = SQLConnector.getConnection();
+                con = new SQLConnector().getConnection();
             insertVoteStmt = con.prepareStatement(insertVoteQuery);
 
             insertVoteStmt.setString(1, username);
@@ -189,7 +189,7 @@ public class SQLInterface {
         return addSuccess;
     }
 
-    boolean AddShop(String id, String reference) {
+    private boolean AddShop(String id, String reference) {
         boolean addSuccess = false;
 
         PreparedStatement insertShopStmt = null;
@@ -203,7 +203,7 @@ public class SQLInterface {
 
         try {
             if (con == null || con.isClosed())
-                con = SQLConnector.getConnection();
+                con = new SQLConnector().getConnection();
             insertShopStmt = con.prepareStatement(insertUserQuery, Statement.RETURN_GENERATED_KEYS);
 
             insertShopStmt.setString(1, id);
@@ -223,19 +223,21 @@ public class SQLInterface {
         return addSuccess;
     }
 
-    long GetDate() {
+    private long GetDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         Calendar ca = Calendar.getInstance();
-
+        String date = ca.get(Calendar.YEAR) + "/" + (ca.get(Calendar.MONTH) + 1) + "/" + ca.get(Calendar.DAY_OF_MONTH);
+        java.util.Date newDate = null;
         try {
-            ca.setTime(sdf.parse(sdf.format(new java.util.Date(ca.getTimeInMillis()))));
+            newDate = sdf.parse(date);
         } catch (ParseException pex) {
-            System.out.println(pex);
+            pex.printStackTrace();
         }
-        return ca.getTimeInMillis();
+
+        return newDate.getTime();
     }
 
-    public void closeStatement(Statement statement) {
+    private void closeStatement(Statement statement) {
         if (statement != null) {
             try {
                 statement.close();

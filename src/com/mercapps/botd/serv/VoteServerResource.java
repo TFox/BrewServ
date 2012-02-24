@@ -10,14 +10,14 @@ import org.restlet.resource.ServerResource;
 
 import java.sql.SQLException;
 
-public class VoteServerResource extends ServerResource implements VoteResource {
+public class VoteServerResource extends ServerResource {
 
     SQLInterface sqi = null;
 
     SQLInterface getSqi() {
         if (sqi == null)
             try {
-                sqi = new SQLInterface(SQLConnector.getConnection());
+                sqi = new SQLInterface(new SQLConnector().getConnection());
             } catch (SQLException sex) {
                 System.out.println(sex);
             }
