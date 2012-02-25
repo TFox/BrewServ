@@ -1,0 +1,18 @@
+web/WEB-INF/lib should contain the following jars:
+mysql connector
+(Restlet j2ee package):
+org.codehaus.jackson.core
+org.jodehaus.jackson.mapper
+org.json
+org.restlet.ext.jackson
+org.restlet.ext.servlet
+org.restlet
+
+web/WEB-INF/classes/conf should contain 'credentials.properties' with the following values:
+ username= (mysql username)
+ password= (mysql password)
+ dbname= (mysql dbname)
+
+ servername= (mysql db url - expects port 3306)
+
+index.html is used for AWS health check

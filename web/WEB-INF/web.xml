@@ -8,7 +8,7 @@
         <servlet-class>org.restlet.ext.servlet.ServerServlet</servlet-class>
         <init-param>
             <param-name>org.restlet.application</param-name>
-            <param-value>com.mercapps.botd.serv.ServerResource</param-value>
+            <param-value>com.tinyhydra.botd.ServerResource</param-value>
         </init-param>
     </servlet>
 

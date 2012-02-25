@@ -1,4 +1,4 @@
-package com.mercapps.botd.serv;
+package com.tinyhydra.botd;
 
 import org.restlet.Application;
 import org.restlet.Component;
@@ -8,10 +8,12 @@ import org.restlet.resource.Directory;
 import org.restlet.routing.Router;
 
 /**
- * Copyright © 2012 mercapps.com
+ * Copyright © 2012 tinyhydra.com
  */
 public class ServerResource extends Application {
 
+    // this is a debug method. starts a local server localhost:8182/1
+    // add /vote to get at the get/put services in VoteServerResource
     public static void main(String[] args) throws Exception {
         Component c = new Component();
         c.getServers().add(Protocol.HTTP, 8182);
@@ -22,6 +24,7 @@ public class ServerResource extends Application {
         // c.stop();
     }
 
+    // basic restlet REST server root binding. Intercepts inbound calls at (serverroot)/vote
     @Override
     public Restlet createInboundRoot() {
         Router router = new Router(getContext());
@@ -32,3 +35,4 @@ public class ServerResource extends Application {
         return router;
     }
 }
+
