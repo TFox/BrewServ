@@ -226,18 +226,15 @@ public class SQLInterface {
     }
 
     // returns today's date with no time data. we'll use this to count votes for the day
-    private long GetDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-        Calendar ca = Calendar.getInstance();
-        String date = ca.get(Calendar.YEAR) + "/" + (ca.get(Calendar.MONTH) + 1) + "/" + ca.get(Calendar.DAY_OF_MONTH);
-        java.util.Date newDate = null;
-        try {
-            newDate = sdf.parse(date);
-        } catch (ParseException pex) {
-            pex.printStackTrace();
-        }
+    public long GetDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
 
-        return newDate.getTime();
+        return cal.getTimeInMillis();
     }
 
     private void closeStatement(Statement statement) {

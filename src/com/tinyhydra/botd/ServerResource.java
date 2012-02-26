@@ -31,6 +31,7 @@ public class ServerResource extends Application {
 
         router.attachDefault(new Directory(getContext(), "war:///"));
         router.attach("/vote", VoteServerResource.class);
+        router.attach("/date", DateServerResource.class);
 
         return router;
     }
