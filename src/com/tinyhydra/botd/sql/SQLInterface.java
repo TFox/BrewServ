@@ -1,5 +1,7 @@
 package com.tinyhydra.botd.sql;
 
+import com.tinyhydra.botd.JSONvalues;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,11 +95,10 @@ public class SQLInterface {
         return returnObject;
     }
 
-    // this is 'get top 5' now. returns top 5 ranking shops for the day in json format
+    // this is 'get top 10' now. returns top 10 ranking shops for the day in json format
     //TODO: return count for display in the app
-    public JSONObject GetBrewOfTheDay() {
-
-        JSONObject brewRankings = new JSONObject();
+    public JSONArray GetBrewOfTheDay() {
+        JSONArray brewRankings = new JSONArray();
 
         PreparedStatement getBrewOfTheDayStmt = null;
         String getBrewOfTheDayQuery = qSELECT
@@ -111,7 +112,7 @@ public class SQLInterface {
 
                 + qGROUP + qBY + votesTable + "." + votesShopVoteField
                 + qORDER + qBY + "cnt"
-                + qDESC + qLIMIT + "5";
+                + qDESC + qLIMIT + "10";
 
         ResultSet rs = null;
         try {
@@ -123,15 +124,16 @@ public class SQLInterface {
             getBrewOfTheDayStmt.setLong(1, GetDate());
 
             rs = getBrewOfTheDayStmt.executeQuery();
-            int rank = 1;
             while (rs.next()) {
                 try {
-                    brewRankings.put("" + rank, rs.getString(shopsReferenceField));
+                    JSONObject jo = new JSONObject();
+                    jo.put(JSONvalues.shopVotes.toString(), rs.getString("cnt"));
+                    jo.put(JSONvalues.shopRef.toString(), rs.getString(shopsReferenceField));
+                    brewRankings.put(jo);
                 } catch (JSONException jex) {
                     System.out.println(jex);
                 }
                 System.out.println(rs.getString(shopsReferenceField));
-                rank++;
             }
 
         } catch (SQLException sqe) {
