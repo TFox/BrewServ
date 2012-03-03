@@ -27,14 +27,16 @@ public class VoteServerResource extends ServerResource {
     // returns top 5 ranking coffee shops
     @Get
     public String retrieve() throws Exception {
-        return getSqi().GetBrewOfTheDay().toString();
+        String returnString = getSqi().GetBrewOfTheDay().toString();
+        sqi.con.close();
+        return returnString;
     }
 
     // accepts votes, returns 0 for successful entries
     // or 1 for duplicate/errored entries.
     //TODO: implement a new error code for duplicate entries and handle it appropriately
     @Put
-    public int store(String vote) {
+    public int store(String vote) throws SQLException {
         String email = "";
         String shopId = "";
         String shopRef = "";
@@ -46,6 +48,8 @@ public class VoteServerResource extends ServerResource {
         } catch (JSONException jex) {
             System.out.println(jex);
         }
-        return getSqi().SubmitVote(email, shopId, 100, shopRef) ? 0 : 1;
+        int success = getSqi().SubmitVote(email, shopId, 100, shopRef) ? 0 : 1;
+        sqi.con.close();
+        return success;
     }
 }

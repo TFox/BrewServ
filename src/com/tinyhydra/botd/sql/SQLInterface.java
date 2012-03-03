@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class SQLInterface {
 
-    private Connection con;
+    public Connection con;
 
     public SQLInterface(Connection con) {
         this.con = con;
@@ -229,14 +229,16 @@ public class SQLInterface {
 
     // returns today's date with no time data. we'll use this to count votes for the day
     public long GetDate() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-
-        return cal.getTimeInMillis();
+        System.out.println("Returning today's date in GMT-8");
+        SimpleDateFormat date_format_gmt = new SimpleDateFormat("yyyy-MM-dd");
+        date_format_gmt.setTimeZone(TimeZone.getTimeZone("GMT-8"));
+        long returnDate = 0;
+        try {
+            returnDate = date_format_gmt.parse(date_format_gmt.format(Calendar.getInstance().getTime())).getTime();
+        } catch (ParseException pex) {
+            pex.printStackTrace();
+        }
+        return returnDate;
     }
 
     private void closeStatement(Statement statement) {
