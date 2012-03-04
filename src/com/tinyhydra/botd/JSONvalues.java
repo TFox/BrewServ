@@ -7,6 +7,9 @@ package com.tinyhydra.botd;
 public enum JSONvalues {
     email,
     shopId,
+    shopName,
+    shopUrl,
+    shopVicinity,
     shopRef,
     shopVotes
 }

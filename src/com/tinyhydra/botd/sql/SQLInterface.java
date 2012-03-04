@@ -5,6 +5,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.*;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,6 +33,9 @@ public class SQLInterface {
 
     // Shops fields
     private final String shopsIdField = "shop_id";
+    private final String shopsNameField = "shop_name";
+    private final String shopsUrlField = "shop_url";
+    private final String shopsVicinityField = "shop_vicinity";
     private final String shopsReferenceField = "shop_reference";
 
     // Votes fields
@@ -102,6 +110,10 @@ public class SQLInterface {
 
         PreparedStatement getBrewOfTheDayStmt = null;
         String getBrewOfTheDayQuery = qSELECT
+                + shopsTable + "." + shopsIdField + ","
+                + shopsTable + "." + shopsNameField + ","
+                + shopsTable + "." + shopsUrlField + ","
+                + shopsTable + "." + shopsVicinityField + ","
                 + shopsTable + "." + shopsReferenceField + ","
                 + "COUNT(*) AS cnt"
                 + qFROM + votesTable
@@ -127,8 +139,12 @@ public class SQLInterface {
             while (rs.next()) {
                 try {
                     JSONObject jo = new JSONObject();
-                    jo.put(JSONvalues.shopVotes.toString(), rs.getString("cnt"));
+                    jo.put(JSONvalues.shopId.toString(), rs.getString(shopsIdField));
+                    jo.put(JSONvalues.shopName.toString(), rs.getString(shopsNameField));
+                    jo.put(JSONvalues.shopUrl.toString(), rs.getString(shopsUrlField));
+                    jo.put(JSONvalues.shopVicinity.toString(), rs.getString(shopsVicinityField));
                     jo.put(JSONvalues.shopRef.toString(), rs.getString(shopsReferenceField));
+                    jo.put(JSONvalues.shopVotes.toString(), rs.getString("cnt"));
                     brewRankings.put(jo);
                 } catch (JSONException jex) {
                     System.out.println(jex);
@@ -152,9 +168,7 @@ public class SQLInterface {
     public boolean SubmitVote(String username, String shop_id, int points, String shop_reference) {
         boolean addSuccess = false;
 
-        boolean addShopSuccess = AddShop(shop_id, shop_reference);
-        if (!addShopSuccess)
-            return false;
+        GetShopDataAndAdd(shop_reference);
 
         PreparedStatement insertVoteStmt = null;
 
@@ -191,9 +205,53 @@ public class SQLInterface {
         return addSuccess;
     }
 
+    private void GetShopDataAndAdd(final String reference) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Properties creds = new Properties();
+                    InputStream inputStream = this.getClass().getClassLoader()
+                            .getResourceAsStream("conf/credentials.properties");
+                    creds.load(inputStream);
+
+                    URL url;
+                    HttpURLConnection conn;
+                    BufferedReader rd;
+                    String line;
+                    String result = "";
+                    url = new URL("https://maps.googleapis.com/maps/api/place/details/json?reference=" + reference + "&sensor=true&key=" + creds.getProperty("placesapikey"));
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    while ((line = rd.readLine()) != null) {
+                        result += line;
+                    }
+                    rd.close();
+
+                    JSONObject results = new JSONObject(result);
+                    String jstatus = results.getString("status");
+                    if (jstatus.equals("OK")) {
+                        JSONObject resultObj = results.getJSONObject("result");
+                        AddShop(resultObj.getString("id"), resultObj.getString("name"), resultObj.getString("url"), resultObj.getString("vicinity"), reference);
+                    }
+                } catch (MalformedURLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
     // when a vote is cast, an id and ref code are included. If they don't exist in the
     // shops table, add them, otherwise do nothing.
-    private boolean AddShop(String id, String reference) {
+    private boolean AddShop(String id, String name, String url, String vicinity, String reference) {
         boolean addSuccess = false;
 
         PreparedStatement insertShopStmt = null;
@@ -201,9 +259,16 @@ public class SQLInterface {
         String insertUserQuery = qINSERT + qINTO
                 + shopsTable + " ("
                 + shopsIdField + ","
+                + shopsNameField + ","
+                + shopsUrlField + ","
+                + shopsVicinityField + ","
                 + shopsReferenceField
-                + ") VALUES(?,?)"
-                + qON + qDUPLICATE + qKEY + qUPDATE + shopsReferenceField + qEQUALS + shopsReferenceField;
+                + ") VALUES(?,?,?,?,?)"
+                + qON + qDUPLICATE + qKEY + qUPDATE
+                + shopsNameField + qEQUALS_VALUE + ","
+                + shopsUrlField + qEQUALS_VALUE + ","
+                + shopsVicinityField + qEQUALS_VALUE + ","
+                + shopsReferenceField + qEQUALS_VALUE;
 
         try {
             if (con == null || con.isClosed())
@@ -211,7 +276,14 @@ public class SQLInterface {
             insertShopStmt = con.prepareStatement(insertUserQuery, Statement.RETURN_GENERATED_KEYS);
 
             insertShopStmt.setString(1, id);
-            insertShopStmt.setString(2, reference);
+            insertShopStmt.setString(2, name);
+            insertShopStmt.setString(3, url);
+            insertShopStmt.setString(4, vicinity);
+            insertShopStmt.setString(5, reference);
+            insertShopStmt.setString(6, name);
+            insertShopStmt.setString(7, url);
+            insertShopStmt.setString(8, vicinity);
+            insertShopStmt.setString(9, reference);
 
             insertShopStmt.execute();
 
